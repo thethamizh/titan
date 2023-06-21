@@ -15,7 +15,11 @@ function ls(e) {
   console.log('hi');
   let name = document.getElementById('name').value;
   let email = document.getElementById('email').value;
-  let userDetailsString = "Name: " + name + ", Email: " + email;
+  let userDetails = {
+    name: name,
+    email: email
+  };
+  let userDetailsString = JSON.stringify(userDetails);
   localStorage.setItem('UserDetails', userDetailsString);
   form.reset();
   location.reload();
