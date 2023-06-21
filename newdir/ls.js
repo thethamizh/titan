@@ -21,6 +21,15 @@ function saveUserDetails(event) {
   let userDetailsContainer = document.getElementById('userform');
   let newli = document.createElement('li');
   newli.textContent = userDetails.name + ' - ' + userDetails.email;
+  let ebtn=document.createElement('input');
+  ebtn.type='button';
+  ebtn.value='Edit';
+  ebtn.onclick = () => {
+    localStorage.removeItem(userDetails.email)
+    userDetailsContainer.removeChild(newli);
+    document.getElementById('name').value = userDetails.name;
+    document.getElementById('email').value = userDetails.email;
+  }
   let dbtn=document.createElement('input');
   dbtn.type='button';
   dbtn.value='Delete';
@@ -28,6 +37,7 @@ function saveUserDetails(event) {
     localStorage.removeItem(userDetails.email)
     userDetailsContainer.removeChild(newli);
   }
+  newli.appendChild(ebtn);
   newli.appendChild(dbtn);
   userDetailsContainer.appendChild(newli);
 
