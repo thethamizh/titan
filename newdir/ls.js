@@ -1,26 +1,25 @@
-
-// let form=document.getElementById('userform');
-// form.addEventListener('submit', ls);
-// function ls(e){
-//     let name=document.getElementById('name').value;
-//     let email=document.getElementById('email').value;
-//     localStorage.setItem('Name',name);
-//     localStorage.setItem('Email',email);
-// }
 let form = document.getElementById('userform');
-form.addEventListener('submit', ls); // Corrected the method name to "addEventListener"
+form.addEventListener('submit', saveUserDetails);
 
-function ls(e) {
-  e.preventDefault();
-  console.log('hi');
-  let name = document.getElementById('name').value;
-  let email = document.getElementById('email').value;
+function saveUserDetails(event) {
+  event.preventDefault();
+
+  // Get the user details from the form
+  let nameInput = document.getElementById('name');
+  let emailInput = document.getElementById('email');
+
+  let name = nameInput.value;
+  let email = emailInput.value;
+
+  // Create an object to hold the user details
   let userDetails = {
     name: name,
     email: email
   };
-  let userDetailsString = JSON.stringify(userDetails);
-  localStorage.setItem('UserDetails', userDetailsString);
+
+  // Store the user details in local storage with the name as the key
+  localStorage.setItem(email, JSON.stringify(userDetails));
+
+  // Reset the form fields
   form.reset();
-  location.reload();
 }
