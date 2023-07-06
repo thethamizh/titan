@@ -16,8 +16,13 @@ function saveUserDetails(event) {
      name, email
   };
 
-  // Store the user details in local storage with the name as the key
-  localStorage.setItem(email, JSON.stringify(userDetails));
+  axios.post("https://crudcrud.com/api/92d03978d13b408d98210daece138700/appointmentdata",userDetails)
+  .then((res) => {
+    console.log(res)
+  })
+  .catch((err) => {
+    console.error(err)
+  })
   let userDetailsContainer = document.getElementById('userform');
   let newli = document.createElement('li');
   newli.textContent = userDetails.name + ' - ' + userDetails.email;
@@ -25,7 +30,6 @@ function saveUserDetails(event) {
   ebtn.type='button';
   ebtn.value='Edit';
   ebtn.onclick = () => {
-    localStorage.removeItem(userDetails.email)
     userDetailsContainer.removeChild(newli);
     document.getElementById('name').value = userDetails.name;
     document.getElementById('email').value = userDetails.email;
@@ -34,7 +38,6 @@ function saveUserDetails(event) {
   dbtn.type='button';
   dbtn.value='Delete';
   dbtn.onclick = () => {
-    localStorage.removeItem(userDetails.email)
     userDetailsContainer.removeChild(newli);
   }
   newli.appendChild(ebtn);
