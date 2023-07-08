@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', getUserDetails);
 
 function getUserDetails() {
-  axios.get("https://crudcrud.com/api/ecc4e609d30d4c68851b8a9d60590fdc/apdata")
+  axios.get("https://crudcrud.com/api/d1dd5724efe046fbbdacba95064f8fd9/apdata")
     .then((res) => {
       // Retrieve the saved user details
       let userDetails = res.data;
@@ -19,7 +19,7 @@ function getUserDetails() {
         deleteIcon.value = 'Delete';
         deleteIcon.onclick = () => {
           userDetailsContainer.removeChild(newli);
-          deleteUser(user._id, newli); // Use user._id instead of res.data._id
+          deleteUser(user._id);
         };
 
         let ebtn = document.createElement('input');
@@ -29,6 +29,9 @@ function getUserDetails() {
           userDetailsContainer.removeChild(newli);
           document.getElementById('name').value = user.name;
           document.getElementById('email').value = user.email;
+          saveBtn.onclick = () => {
+            updateUser(user._id, newli);
+          };
         };
 
         newli.appendChild(deleteIcon);
@@ -42,11 +45,36 @@ function getUserDetails() {
 }
 
 // Delete user details
-function deleteUser(userId, listItem) {
-  axios.delete(`https://crudcrud.com/api/ecc4e609d30d4c68851b8a9d60590fdc/apdata/${userId}`) // Add forward slash before userId
+function deleteUser(userId) {
+  axios.delete(`https://crudcrud.com/api/d1dd5724efe046fbbdacba95064f8fd9/apdata/${userId}`)
     .then((res) => {
       console.log(res);
-      listItem.remove();
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+}
+
+// Update user details
+function updateUser(userId, listItem) {
+  let nameInput = document.getElementById('name');
+  let emailInput = document.getElementById('email');
+
+  let updatedName = nameInput.value;
+  let updatedEmail = emailInput.value;
+
+  let updatedUserDetails = {
+    name: updatedName,
+    email: updatedEmail
+  };
+
+  axios.put(`https://crudcrud.com/api/d1dd5724efe046fbbdacba95064f8fd9/apdata/${userId}`, updatedUserDetails)
+    .then((res) => {
+      console.log(res);
+      listItem.textContent = updatedName + ' - ' + updatedEmail;
+      nameInput.value = '';
+      emailInput.value = '';
+      saveBtn.onclick = saveUserDetails;
     })
     .catch((err) => {
       console.error(err);
@@ -55,6 +83,7 @@ function deleteUser(userId, listItem) {
 
 // Save user details when the form is submitted
 let form = document.getElementById('userform');
+let saveBtn = document.getElementById('saveBtn');
 form.addEventListener('submit', saveUserDetails);
 
 function saveUserDetails(event) {
@@ -67,43 +96,71 @@ function saveUserDetails(event) {
   let name = nameInput.value;
   let email = emailInput.value;
 
-  // Create an object to hold the user details
-  let userDetails = {
-    name,
-    email
-  };
+  // Check if name and email fields are empty
+  if (!name || !email) {
+    alert('Please enter both name and email');
+    return;
+  }
 
-  axios.post("https://crudcrud.com/api/ecc4e609d30d4c68851b8a9d60590fdc/apdata", userDetails)
-    .then((res) => {
-      console.log(res);
-      let userDetailsContainer = document.getElementById('userform');
-      let newli = document.createElement('li');
-      newli.textContent = userDetails.name + ' - ' + userDetails.email;
+  // Get the list of user details
+  let userDetailsList = document.getElementById('userform').querySelectorAll('li');
 
-      let deleteIcon = document.createElement('input');
-      deleteIcon.type = 'button';
-      deleteIcon.value = 'Delete';
-      deleteIcon.onclick = () => {
-        userDetailsContainer.removeChild(newli);
-        deleteUser(res.data._id, newli);
-      };
+  // Find the existing user detail to update
+  let existingUser = null;
+  userDetailsList.forEach((user) => {
+    let userText = user.textContent;
+    if (userText.includes(name) && userText.includes(email)) {
+      existingUser = user;
+    }
+  });
 
-      let ebtn = document.createElement('input');
-      ebtn.type = 'button';
-      ebtn.value = 'Edit';
-      ebtn.onclick = () => {
-        userDetailsContainer.removeChild(newli);
-        document.getElementById('name').value = userDetails.name;
-        document.getElementById('email').value = userDetails.email;
-      };
+  // If existing user found, update the details
+  if (existingUser) {
+    let userId = existingUser.dataset.userId;
+    updateUser(userId, existingUser);
+  } else {
+    // Create a new user detail
+    let userDetails = {
+      name,
+      email
+    };
 
-      newli.appendChild(deleteIcon);
-      newli.appendChild(ebtn);
-      userDetailsContainer.appendChild(newli);
-    })
-    .catch((err) => {
-      console.error(err);
-    });
+    axios.post("https://crudcrud.com/api/d1dd5724efe046fbbdacba95064f8fd9/apdata", userDetails)
+      .then((res) => {
+        console.log(res);
+        let userDetailsContainer = document.getElementById('userform');
+        let newli = document.createElement('li');
+        newli.textContent = userDetails.name + ' - ' + userDetails.email;
+        newli.dataset.userId = res.data._id;
+
+        let deleteIcon = document.createElement('input');
+        deleteIcon.type = 'button';
+        deleteIcon.value = 'Delete';
+        deleteIcon.onclick = () => {
+          userDetailsContainer.removeChild(newli);
+          deleteUser(res.data._id);
+        };
+
+        let ebtn = document.createElement('input');
+        ebtn.type = 'button';
+        ebtn.value = 'Edit';
+        ebtn.onclick = () => {
+          userDetailsContainer.removeChild(newli);
+          document.getElementById('name').value = userDetails.name;
+          document.getElementById('email').value = userDetails.email;
+          saveBtn.onclick = () => {
+            updateUser(res.data._id, newli);
+          };
+        };
+
+        newli.appendChild(deleteIcon);
+        newli.appendChild(ebtn);
+        userDetailsContainer.appendChild(newli);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
 
   // Reset the form fields
   form.reset();
