@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candy Stock</title>
+    <style>
+        label, input {
+            padding-left: 20px;
+            font-weight: bold;
+        }
+        button {
+            margin-left: 20px;
+            width: 80px;
+            height: 35px;
+            border: none;
+            border-radius: 10px;
+            background-color: grey;
+            font-weight: bold;
+        }
+        .buybutton{
+            width: 80px;
+            height: 25px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 10px;
+            background-color: grey;
+            font-weight: bold;
+
+        }
+        input {
+            width: 200px;
+            height: 30px;
+            border-radius: 10px;
+            border: 2px solid grey;
+        }
+        #candylist {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Candy Stock Management</h1>
+    <form id="candyform">
+        <label for="candyname">Candy Name:</label>
+        <input type="text" id="candyname" placeholder="Enter Candy Name">
+
+        <label for="flavour">Flavour:</label>
+        <input type="text" id="flavour" placeholder="Enter Flavour">
+
+        <label for="price">Price:</label>
+        <input type="text" id="price" placeholder="Enter Price">
+
+        <label for="quantity">Quantity:</label>
+        <input type="text" id="quantity" placeholder="Enter Quantity">
+
+        <button type="button" id="additem">Add Item</button>
+    </form>
+
+    <div id="candylist"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+const candyForm = document.getElementById('candyform');
+const candyList = document.getElementById('candylist');
+const addItemButton = document.getElementById('additem');
+let candies = [];
+const apiUrl = 'https://crudcrud.com/api/df3bd8e74edb4b0289be235e1824570d/cd';
+// Function to retrieve candy items from the API
+const getCandiesFromAPI = () => {
+    axios.get(apiUrl)
+    .then(response => {
+        candies = response.data;
+        renderCandyItems();
+    })
+    .catch(error => {
+        console.error('Error retrieving candy items:', error);
+    });
+};
+
+// Function to render the candy items on the page
+const renderCandyItems = () => {
+    candyList.innerHTML = '';
+
+    for (const candyItem of candies) {
+        const candyItemDiv = createCandyItemDiv(candyItem);
+        candyList.appendChild(candyItemDiv);
+    }
+};
+
+// Function to add a candy item
+const addItem = () => {
+    const candyName = document.getElementById('candyname').value;
+    const flavour = document.getElementById('flavour').value;
+    const price = document.getElementById('price').value;
+    const quantity = document.getElementById('quantity').value;
+
+    // Make a POST request to the API
+    axios.post(apiUrl, {
+        candyName,
+        flavour,
+        price,
+        quantity
+    })
+    .then(response => {
+        getCandiesFromAPI(); // Refresh the candy items from the API
+        candyForm.reset();
+    })
+    .catch(error => {
+        console.error('Error adding candy item:', error);
+    });
+};
+
+// Function to create a candy item div
+const createCandyItemDiv = candyItem => {
+    const { _id, candyName, flavour, price, quantity } = candyItem;
+
+    const candyItemDiv = document.createElement('div');
+    const candyItemContent = document.createElement('span');
+    candyItemContent.textContent = `${candyName} - ${flavour} - ₹${price} - Quantity: `;
+    candyItemDiv.dataset.candyId = _id;
+    candyItemDiv.appendChild(candyItemContent);
+
+    const quantityElement = document.createElement('span');
+    quantityElement.textContent = quantity;
+    quantityElement.classList.add('quantity');
+    candyItemDiv.appendChild(quantityElement);
+
+    const buyButton1 = document.createElement('button');
+    buyButton1.textContent = 'Buy 1';
+    buyButton1.classList.add('buybutton');
+    const buyButton2 = document.createElement('button');
+    buyButton2.textContent = 'Buy 2';
+    buyButton2.classList.add('buybutton');
+    const buyButton3 = document.createElement('button');
+    buyButton3.textContent = 'Buy 3';
+    buyButton3.classList.add('buybutton');
+
+
+    buyButton1.addEventListener('click', () => handleBuyButtonClick(candyItem, quantityElement, 1));
+    buyButton2.addEventListener('click', () => handleBuyButtonClick(candyItem, quantityElement, 2));
+    buyButton3.addEventListener('click', () => handleBuyButtonClick(candyItem, quantityElement, 3));
+
+    candyItemDiv.appendChild(buyButton1);
+    candyItemDiv.appendChild(buyButton2);
+    candyItemDiv.appendChild(buyButton3);
+
+    return candyItemDiv;
+};
+
+// Function to handle the buy button click
+const handleBuyButtonClick = (candyItem, quantityElement, quantityToBuy) => {
+    let currentQuantity = candyItem.quantity;
+
+    if (currentQuantity >= quantityToBuy) {
+        currentQuantity -= quantityToBuy;
+        quantityElement.textContent = currentQuantity;
+
+        // Make a PUT request to update the quantity in the API
+        axios.put(`${apiUrl}/${candyItem._id}`, {
+            candyName: candyItem.candyName,
+            price: candyItem.price,
+            flavour: candyItem.flavour,
+            quantity: currentQuantity
+        })
+        .then(response => {
+            getCandiesFromAPI(); // Refresh the candy items from the API
+        })
+        .catch(error => {
+            console.error('Error updating quantity:', error);
+        });
+    }
+    else {
+        // Stock not available message
+        
+        const stockMsg = document.createElement('span');
+        stockMsg.textContent = 'Stock Not Available!';
+        stockMsg.classList.add('stock-msg');
+        stockMsg.style.color = 'red';
+        stockMsg.style.fontWeight = 'bold'
+        candyList.appendChild(stockMsg);
+        setTimeout(() => {
+            stockMsg.remove(); // Remove the stock not available message after a certain time
+        }, 2000);
+    }
+};
+
+// Add event listener to the "Add Item" button
+addItemButton.addEventListener('click', addItem);
+
+// Retrieve the candy items from the API on page load
+getCandiesFromAPI();
+
+
+    </script>
+</body>
+</html>
