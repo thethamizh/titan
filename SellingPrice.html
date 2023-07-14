@@ -44,7 +44,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        const apiurl = 'https://crudcrud.com/api/71f03db0c3d94130add6a875750c1768/pd';
+        const apiurl = 'https://crudcrud.com/api/7cf51222a5dc48a6852b79f6a87097da/sp';
         const productForm = document.getElementById('product-form');
         const productList = document.getElementById('product-list');
         const addButton = document.getElementById('add-button');
@@ -52,7 +52,7 @@
         let products = [];
 
         // Function to add a product
-        const addProduct = () => {
+        const addProduct = async () => {
             const productName = document.getElementById('product-name').value;
             const sellingPrice = parseInt(document.getElementById('selling-price').value);
 
@@ -62,17 +62,16 @@
                     price: sellingPrice
                 };
 
-                // Make a POST request to save the product in the API
-                axios.post(apiurl, product)
-                    .then(response => {
-                        product.id = response.data._id;
-                        products.push(product);
-                        renderProductList();
-                        updateTotalPrice();
-                    })
-                    .catch(error => {
-                        console.error('Error adding product:', error);
-                    });
+                try {
+                    // Make a POST request to save the product in the API
+                    const response = await axios.post(apiurl, product);
+                    product.id = response.data._id;
+                    products.push(product);
+                    renderProductList();
+                    updateTotalPrice();
+                } catch (error) {
+                    console.error('Error adding product:', error);
+                }
 
                 // Clear the form inputs
                 productForm.reset();
@@ -102,7 +101,7 @@
 
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete';
-            deleteButton.addEventListener('click', () => deleteProduct(product));
+            deleteButton.addEventListener('click', async () => await deleteProduct(product));
 
             productItem.appendChild(productName);
             productItem.appendChild(productPrice);
@@ -112,21 +111,20 @@
         };
 
         // Function to delete a product
-        const deleteProduct = (product) => {
-            console.log(product,product.id)
-            // Make a DELETE request to remove the product from the API
-            axios.delete(`${apiurl}/${product.id}`)
-            .then(response => {
-            if (response.status === 200) {
-                products = products.filter(p => p.id !== product.id);
-                renderProductList();
-                updateTotalPrice();
-            } else {
-                console.error('Error deleting product:', response.statusText);
-            }})
-                .catch(error => {
-                    console.error('Error deleting product:', error);
-                });
+        const deleteProduct = async (product) => {
+            try {
+                // Make a DELETE request to remove the product from the API
+                const response = await axios.delete(`${apiurl}/${product.id}`);
+                if (response.status === 200) {
+                    products = products.filter(p => p.id !== product.id);
+                    renderProductList();
+                    updateTotalPrice();
+                } else {
+                    console.error('Error deleting product:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error deleting product:', error);
+            }
         };
 
         // Function to update the total price
